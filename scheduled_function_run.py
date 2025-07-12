@@ -78,7 +78,7 @@ def hourly_scheduled_function_run(hour, minute, second, func, *args, loop=True, 
         else:
             print("Waiting for the next day...")
             time.sleep(int(abs(get_time_delta_seconds(23, 59, 59))) + 1)
-            pass
+            
 
 
 
