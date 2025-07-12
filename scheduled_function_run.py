@@ -48,7 +48,7 @@ def get_time_delta_seconds(hour, minute, second):
     return delta.total_seconds()*-1
 
 
-def hourly_scheduled_function_run(hour, minute, second, func, *args, **kwargs):
+def hourly_scheduled_function_run(hour, minute, second, func, *args, loop=True, **kwargs):
     import time
     """
     Runs the given function every hour at the specified time (hour, minute, second).
@@ -60,23 +60,26 @@ def hourly_scheduled_function_run(hour, minute, second, func, *args, **kwargs):
         second (int): Second to run the function (0-59).
         func (callable): The function to run.
         *args: Positional arguments for the function.
+        loop (bool): If True, runs in a loop every hour. If False, executes only once.
         **kwargs: Keyword arguments for the function.
 
     Example:
-        hourly_scheduled_function_run(14, 30, 0, printer, "Scheduled function executed!")
+        hourly_scheduled_function_run(14, 30, 0, printer, "Scheduled function executed!", loop=True)
     """
     while True:
-
         delta_seconds = get_time_delta_seconds(hour, minute, second)
-
         if delta_seconds > 0:
             print(f"Waiting for the next scheduled time: {hour:02}:{minute:02}:{second:02}")
             time.sleep(int(abs(get_time_delta_seconds(hour, minute, second))))
             run_in_thread(func, *args, **kwargs)
-            hour= (hour + 1)%24
+            if not loop:
+                break
+            hour = (hour + 1) % 24
         else:
             print("Waiting for the next day...")
-            time.sleep(int(abs(get_time_delta_seconds(23, 59, 59)))+1)  # Adding 1 second to ensure it runs the next day
+            time.sleep(int(abs(get_time_delta_seconds(23, 59, 59))) + 1)
+            if not loop:
+                break
             pass
 
 
@@ -87,4 +90,4 @@ if __name__ == "__main__":
     # seconds = get_time_delta_seconds(8, 50, 0)  
     # print(f"Time delta in seconds: {int(abs(seconds))}")
 
-    hourly_scheduled_function_run(9, 15, 0, printer, "Scheduled function executed!")
+    hourly_scheduled_function_run(9, 15, 0, printer, "Scheduled function executed!", loop=True)
