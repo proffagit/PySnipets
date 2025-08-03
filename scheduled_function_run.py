@@ -81,6 +81,8 @@ def hourly_scheduled_function_run(hour, minute, second, func, *args, loop=True, 
             
 
 
+#temp
+from datetime import datetime
 
 if __name__ == "__main__":
     
@@ -88,4 +90,7 @@ if __name__ == "__main__":
     # seconds = get_time_delta_seconds(8, 50, 0)  
     # print(f"Time delta in seconds: {int(abs(seconds))}")
 
-    hourly_scheduled_function_run(9, 15, 0, printer, "Scheduled function executed!", loop=True)
+    current_hour = datetime.now().hour
+    
+
+    hourly_scheduled_function_run(current_hour, 52, 0, printer, "Scheduled function executed!", loop=True)
