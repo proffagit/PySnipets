@@ -1,6 +1,6 @@
 import threading
 import time
-from datetime import datetime, time, timedelta
+from datetime import datetime, timedelta
 
 def printer(message):
     """
@@ -41,7 +41,7 @@ def get_time_delta_seconds(hour, minute, second):
         float: Number of seconds until the specified time. Negative if the time has passed.
     """
     now = datetime.now()
-    specified_time = datetime.combine(now.date(), time(hour, minute, second))
+    specified_time = datetime.combine(now.date(), datetime.time(hour, minute, second))
     return (specified_time - now).total_seconds()
 
 
@@ -87,11 +87,11 @@ def minute_interval_scheduled_function_run(minutes, seconds, func, *args, loop=T
 
 def hourly_scheduled_function_run(hour, minute, second, func, *args, loop=True, **kwargs):
     """
-    Runs the given function every hour at the specified time (hour, minute, second).
+    Runs the given function every hour at the specified time (minute, second), starting from the given hour.
     The function is executed in a separate thread to avoid blocking.
 
     Args:
-        hour (int): Hour to run the function (0-23).
+        hour (int): Starting hour (0-23).
         minute (int): Minute to run the function (0-59).
         second (int): Second to run the function (0-59).
         func (callable): The function to run.
@@ -102,25 +102,18 @@ def hourly_scheduled_function_run(hour, minute, second, func, *args, loop=True, 
     Example:
         hourly_scheduled_function_run(14, 30, 0, printer, "Scheduled function executed!", loop=True)
     """
+    target = datetime.now().replace(hour=hour, minute=minute, second=second, microsecond=0)
     while True:
-        delta_seconds = get_time_delta_seconds(hour, minute, second)
-        if delta_seconds >= 0:
-            print(f"Waiting for the next scheduled time: {hour:02}:{minute:02}:{second:02}")
-            time.sleep(delta_seconds)
-            run_in_thread(func, *args, **kwargs)
-            if not loop:
-                break
-            hour = (hour + 1) % 24
-        else:
-            old_hour = hour
-            hour = (hour + 1) % 24
-            if hour < old_hour:
-                print("Waiting for the next day...")
-                now = datetime.now()
-                tomorrow = now + timedelta(days=1)
-                next_midnight = datetime.combine(tomorrow.date(), time(0, 0, 0))
-                sleep_seconds = (next_midnight - now).total_seconds()
-                time.sleep(sleep_seconds)
+        now = datetime.now()
+        if target <= now:
+            target += timedelta(hours=1)
+        delta_seconds = (target - now).total_seconds()
+        print(f"Waiting for the next scheduled time: {target.strftime('%H:%M:%S')}")
+        time.sleep(delta_seconds)
+        run_in_thread(func, *args, **kwargs)
+        if not loop:
+            break
+        target += timedelta(hours=1)
 
 
 #temp
